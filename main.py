@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
-
+#todo git 同步，部署，换端口
 session_state = st.session_state
 
 def show(name, df):
@@ -23,39 +23,63 @@ def show(name, df):
     st.text(session_state['reason'])
 
 
+def change_df(df, tree):
+    for i in range(df.shape[0]):
+        for j in df.keys():
+            if j == 'name':
+                continue
+            else:
+                df.loc[i, j] = tree.loc[df.loc[i, 'name'], j]
+    return df
+
 def show_admin(df):
-    gb = GridOptionsBuilder.from_dataframe(df)
-
-    # for i in df.keys():
-    #     if '比例' in i:
-    #         gb.configure_column(i, cellStyle= cells_jscode)
-    #     elif '总成本' in i:
-    #         gb.configure_column(i, editable=True)
-    for i in df.keys():
-        gb.configure_column(i, editable=True)
-    gridOptions = gb.build()
-
-    data = AgGrid(
-        df,
-        gridOptions=gridOptions,
-        enable_enterprise_modules=True,
-        fit_columns_on_grid_load=True,
-        allow_unsafe_jscode=True,
-        try_to_convert_back_to_original_types=True,
-        update_mode='value_changed'
-        # editable=True
-    )
-    changeing = st.button('提交修改',key='changeing')
-    if session_state.changeing:
-        session_state['changed_data'] = data['data']
+    tree = df.set_index('name')
+    st.selectbox('姓名',df['name'], key='select_name')
+    for i in tree.keys():
+        # st.text(i+':    '+str(tree.loc[session_state.select_name, i]))
+        st.text_input(i+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
+    st.button('确认提交',key='con')
+    if session_state['con']:
+        for i in tree.keys():
+            temp = session_state['select_'+i]
+            if temp != '':
+                tree.loc[session_state['select_name'], i ] = temp
         st.success('提交成功')
-        st.write(session_state['changed_data'])
-        # session_state['changed_data'].to_csv('./add_on/total.', encoding='gbk', index=False)
-        session_state['changed_data'].to_excel('./user.xlsx', index=False)
+        change = change_df(df, tree)
+        change.to_excel('./user.xlsx', index=False)
+        # st.dataframe(change)
+        # print(change)
+def try_or_none(name):
+    p = ''
+    try :
+        p = session_state[name]
+    except:
+        p = ''
+    return  p
 
 
 
-df = pd.read_excel('./user.xlsx')
+def change_sc(sc):
+    sc0 = try_or_none('sc0')
+    sc1 = try_or_none('sc1')
+    sc2 = try_or_none('sc2')
+
+
+    sc0 = st.text_input('请输入原密码',value=sc0,  key='sc0')
+    sc1 = st.text_input('请输入新密码',value=sc1, key='sc1')
+    sc2 = st.text_input('确认新密码',value=sc2, key='sc2')
+    if session_state['sc0'] == sc:
+        change_scc = st.button('确认修改密码')
+        # if change_scc :
+        #     session_state['change_scc'] = True
+        # # print(session_state['change_scc'])
+        # if 'change_scc' in session_state.keys() and session_state['change_scc']:
+        #     print(1)
+        #     if session_state['sc1'] == session_state['sc2'] and session_state['sc1'] != '':
+        #         st.success('密码修改成功')
+
+
+df = pd.read_excel('./user.xlsx', dtype=str)
 # tree = df.set_index('name')
 # print(df)
 
@@ -65,17 +89,22 @@ name = st.text_input('姓名', key='name')
 sc = st.text_input('密码', key='sc')
 # session_state['login'] = False
 
+
+
 for i, j, k in zip(df['name'], df['sc'], df['mod']):
     if i == name and str(sc) == str(j):
         st.success('登录成功')
         session_state['login'] = True
-        session_state['mod'] = bool(k)
+        session_state['mod'] = bool(int(k))
+        print(session_state['mod'], k)
         break
     else:
-        st.warning('密码错误，请重新登录')
+        # session_state['login'] = False
+        continue
+        # st.warning('密码错误，请重新登录')
 if 'login' in session_state.keys() and session_state['login'] :
-    if not session_state['mod']:
-        show(name, df)
-    else:
+    if 'mod' in session_state.keys() and session_state['mod'] :
         show_admin(df)
+    else:
+        show(name, df)
 

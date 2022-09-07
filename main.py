@@ -32,22 +32,63 @@ def change_df(df, tree):
                 df.loc[i, j] = tree.loc[df.loc[i, 'name'], j]
     return df
 
-def show_admin(df):
+def show_admin_super(df):
     tree = df.set_index('name')
+    change_list = ['score', 'reason','mod', 'sc']
+    show_dict={'score':'分数','reason':'扣分原因', 'mod':'权限等级','sc':'密码'}
     st.selectbox('姓名',df['name'], key='select_name')
-    for i in tree.keys():
+    for i in change_list:
         # st.text(i+':    '+str(tree.loc[session_state.select_name, i]))
-        st.text_input(i+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
+        st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
+    st.write('权限等级：最高级管理员：2 ，管理员：1，普通用户：0')
     st.button('确认提交',key='con')
     if session_state['con']:
-        for i in tree.keys():
+        for i in change_list:
             temp = session_state['select_'+i]
             if temp != '':
-                tree.loc[session_state['select_name'], i ] = temp
+                if i =='score':
+                    tree.loc[session_state['select_name'], i ] = str(int(tree.loc[session_state['select_name'], i ])+ int(temp))
+                elif  i=='reason':
+                    tree.loc[session_state['select_name'], i ] += ';' + temp
+                else:
+                    tree.loc[session_state['select_name'], i ] = temp
+
+
         st.success('提交成功')
         change = change_df(df, tree)
         change.to_excel('./user.xlsx', index=False)
-        # st.dataframe(change)
+        show_df = tree[change_list]
+        show_df= show_df.rename(columns=show_dict)
+
+        st.dataframe(show_df)
+
+
+
+def show_admin(df):
+    tree = df.set_index('name')
+    change_list = ['score', 'reason']
+    show_dict={'score':'分数','reason':'扣分原因'}
+
+    st.selectbox('姓名',df['name'], key='select_name')
+    for i in change_list:
+        # st.text(i+':    '+str(tree.loc[session_state.select_name, i]))
+        st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
+    st.button('确认提交',key='con')
+    if session_state['con']:
+        for i in change_list:
+            temp = session_state['select_'+i]
+            if temp != '':
+                if i =='score':
+                    tree.loc[session_state['select_name'], i ] = str(int(tree.loc[session_state['select_name'], i ])+ int(temp))
+                elif  i=='reason':
+                    tree.loc[session_state['select_name'], i ] += ';' + temp
+
+        st.success('提交成功')
+        change = change_df(df, tree)
+        change.to_excel('./user.xlsx', index=False)
+        show_df = tree[change_list]
+        show_df =show_df.rename(columns=show_dict)
+        st.dataframe(show_df)
         # print(change)
 def try_or_none(name):
     p = ''
@@ -95,7 +136,7 @@ for i, j, k in zip(df['name'], df['sc'], df['mod']):
     if i == name and str(sc) == str(j):
         st.success('登录成功')
         session_state['login'] = True
-        session_state['mod'] = bool(int(k))
+        session_state['mod'] = int(k)
         print(session_state['mod'], k)
         break
     else:
@@ -103,8 +144,11 @@ for i, j, k in zip(df['name'], df['sc'], df['mod']):
         continue
         # st.warning('密码错误，请重新登录')
 if 'login' in session_state.keys() and session_state['login'] :
-    if 'mod' in session_state.keys() and session_state['mod'] :
-        show_admin(df)
-    else:
-        show(name, df)
+    if 'mod' in session_state.keys():
+        if session_state['mod']  == 1:
+            show_admin(df)
+        elif session_state['mod'] ==0:
+            show(name, df)
+        elif  session_state['mod'] ==2 :
+            show_admin_super(df)
 

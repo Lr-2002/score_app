@@ -38,8 +38,11 @@ def show_admin_super(df):
     show_dict={'score':'分数','reason':'扣分原因', 'mod':'权限等级','sc':'密码'}
     st.selectbox('姓名',df['name'], key='select_name')
     for i in change_list:
-        # st.text(i+':    '+str(tree.loc[session_state.select_name, i]))
-        st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
+        if i == 'reason':
+            st.text_input(show_dict[i] + ':    ' + str(tree.loc[session_state['select_name'], i]),
+                          value=str(tree.loc[session_state['select_name'], i]), key='select_' + i)
+        else:
+            st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
     st.write('权限等级：最高级管理员：2 ，管理员：1，普通用户：0')
     st.button('确认提交',key='con')
     if session_state['con']:
@@ -72,7 +75,10 @@ def show_admin(df):
     st.selectbox('姓名',df['name'], key='select_name')
     for i in change_list:
         # st.text(i+':    '+str(tree.loc[session_state.select_name, i]))
-        st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
+        if i == 'reason':
+            st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), value=str(tree.loc[session_state['select_name'], i]) ,key = 'select_'+i)
+        else:
+            st.text_input(show_dict[i]+':    '+str(tree.loc[session_state['select_name'], i]), key = 'select_'+i)
     st.button('确认提交',key='con')
     if session_state['con']:
         for i in change_list:

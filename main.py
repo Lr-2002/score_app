@@ -52,7 +52,7 @@ def show_admin_super(df):
                 if i =='score':
                     tree.loc[session_state['select_name'], i ] = str(int(tree.loc[session_state['select_name'], i ])+ int(temp))
                 elif  i=='reason':
-                    tree.loc[session_state['select_name'], i ] += ';' + temp
+                    tree.loc[session_state['select_name'], i ] = temp
                 else:
                     tree.loc[session_state['select_name'], i ] = temp
 
@@ -87,7 +87,7 @@ def show_admin(df):
                 if i =='score':
                     tree.loc[session_state['select_name'], i ] = str(int(tree.loc[session_state['select_name'], i ])+ int(temp))
                 elif  i=='reason':
-                    tree.loc[session_state['select_name'], i ] += ';' + temp
+                    tree.loc[session_state['select_name'], i ] = temp
 
         st.success('提交成功')
         change = change_df(df, tree)
@@ -148,7 +148,7 @@ for i, j, k in zip(df['name'], df['sc'], df['mod']):
     else:
         # session_state['login'] = False
         continue
-        # st.warning('密码错误，请重新登录')
+        st.warning('密码错误，请重新登录')
 if 'login' in session_state.keys() and session_state['login'] :
     if 'mod' in session_state.keys():
         if session_state['mod']  == 1:
